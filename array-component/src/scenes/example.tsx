@@ -13,7 +13,7 @@ export default makeScene2D(function* (view) {
   view.add(
     <Array
       ref={ArrayRef}  
-      values={[0,1,2,3]}
+      values={[0,1,2]}
     />
   )
 

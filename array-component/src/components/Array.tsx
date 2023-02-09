@@ -31,9 +31,31 @@ export class Array extends Layout {
     @initial(28)
     @signal()
     public declare readonly boxGap: SimpleSignal<number, this>
+    
+    private getValue(Index: number){
+        if(this.values()[Index] == undefined){
+            return -1;
+        }
+        return this.values()[Index];
+    }
 
-    public readonly arrayContainer: Rect;
     public readonly boxArray: Rect[] = [];
+    public pool = range(10).map(i => (
+        <Rect
+            ref={makeRef(this.boxArray, i)}
+            size={[this.boxWidth(), this.boxWidth()]}
+            x={-((this.values().length * (this.boxWidth() + this.boxGap())) / 2) + i * (this.boxWidth() + this.boxGap()) + (this.boxWidth() + this.boxGap()) / 2}
+            lineWidth={8}
+            stroke={'#242424'}
+            radius={new Spacing(4)}
+        >
+            <Text
+                text={this.getValue(i).toString()}
+                // text={() => this.values().length.toString()}
+                {...this.textStyle}
+            />
+        </Rect>
+    ));
 
     textStyle = {
         paddingTop: 10,
@@ -47,24 +69,10 @@ export class Array extends Layout {
         }); 
 
         this.add(
-            <Node>
-                {range(this.values().length).map(i =>
-                    <Rect
-                        ref={makeRef(this.boxArray, i)}
-                        size={[this.boxWidth(), this.boxWidth()]}
-                        x={-((this.values.length * (this.boxWidth() + this.boxGap())) / 2) + i * (this.boxWidth() + this.boxGap()) + (this.boxWidth() + this.boxGap()) / 2}
-                        lineWidth={8}
-                        stroke={'#242424'}
-                        radius={new Spacing(4)}
-                        {...props}
-                    >
-                        <Text
-                            // text={this.values()[i].toString()}
-                            text={() => this.values.length.toString()}
-                            {...this.textStyle}
-                        />
-                    </Rect>
-                )}
+            <Node
+                spawner={() => this.pool.slice(0, this.values().length)}
+            >
+                
             </Node>
         )
     }
