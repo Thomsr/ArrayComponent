@@ -6,6 +6,7 @@ import { SignalValue, SimpleSignal } from "@motion-canvas/core/lib/signals";
 import { ColorSignal, Spacing } from "@motion-canvas/core/lib/types";
 import { makeRef } from "@motion-canvas/core/lib/utils";
 import { range } from '@motion-canvas/core/lib/utils';
+import { all } from "@motion-canvas/core/lib/flow"
 // import { Colors, BlackLabel, WhiteLabel } from "../styles";
 
 export interface ArrayProps extends ShapeProps, LayoutProps {
@@ -31,16 +32,26 @@ export class Array extends Layout {
     @initial(28)
     @signal()
     public declare readonly boxGap: SimpleSignal<number, this>
+
+    // Array that stores the references to the Rects
+    public readonly boxArray: Rect[] = [];
     
+    textStyle = {
+        paddingTop: 10,
+        fontFamily: 'JetBrains Mono',
+        fill: 'rgba(255, 255, 255, 0.6)',
+    };
+
+    // @brief Returns value of the original array
     private getValue(Index: number){
         if(this.values()[Index] == undefined){
             return -1;
         }
         return this.values()[Index];
     }
-
-    public readonly boxArray: Rect[] = [];
-    public pool = range(10).map(i => (
+    
+    // @brief Pool to reduce playback lag in the animator
+    public pool = range(64).map(i => (
         <Rect
             ref={makeRef(this.boxArray, i)}
             size={[this.boxWidth(), this.boxWidth()]}
@@ -51,17 +62,11 @@ export class Array extends Layout {
         >
             <Text
                 text={this.getValue(i).toString()}
-                // text={() => this.values().length.toString()}
                 {...this.textStyle}
             />
         </Rect>
     ));
 
-    textStyle = {
-        paddingTop: 10,
-        fontFamily: 'JetBrains Mono',
-        fill: 'rgba(255, 255, 255, 0.6)',
-    };
 
     public constructor(props?: ArrayProps) {
         super({
@@ -72,7 +77,6 @@ export class Array extends Layout {
             <Node
                 spawner={() => this.pool.slice(0, this.values().length)}
             >
-                
             </Node>
         )
     }
@@ -101,8 +105,17 @@ export class Array extends Layout {
         })
     }
 
-    public * Swap(){
-
-    }
+    // @param {Boolean} Direction Left == false, Right == True
+    public * Swap(Index1: number, Index2: number, Direction: boolean){
+        if(Direction) this.boxArray[Index1].moveUp();
+        yield* all(
+            this.boxArray[Index1].position(this.boxArray[Index2].position(), 1),
+            this.boxArray[Index2].position(this.boxArray[Index1].position(), 1),
+        )
+        if(!Direction) this.boxArray[Index2].moveDown();
+        let tempValue = this.boxArray[Index1];
+        this.boxArray[Index1] = this.boxArray[Index2];
+        this.boxArray[Index2] = tempValue;
+     }
 }
 
