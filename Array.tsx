@@ -3,11 +3,10 @@ import { easeInOutCubic, tween } from "@motion-canvas/core/lib/tweening"
 import { Color } from "@motion-canvas/core/lib/types/Color"
 import { initial, signal } from "@motion-canvas/2d/lib/decorators";
 import { SignalValue, SimpleSignal } from "@motion-canvas/core/lib/signals";
-import { ColorSignal, Spacing } from "@motion-canvas/core/lib/types";
+import { Spacing } from "@motion-canvas/core/lib/types";
 import { makeRef } from "@motion-canvas/core/lib/utils";
 import { range } from '@motion-canvas/core/lib/utils';
 import { all } from "@motion-canvas/core/lib/flow"
-// import { Colors, BlackLabel, WhiteLabel } from "../styles";
 
 export interface ArrayProps extends ShapeProps, LayoutProps {
     values?: SignalValue<number[] | string[] >;
@@ -43,7 +42,7 @@ export class Array extends Layout {
     };
 
     // @brief Returns value of the original array
-    private getValue(Index: number){
+    public getValue(Index: number){
         if(this.values()[Index] == undefined){
             return -1;
         }
@@ -93,11 +92,11 @@ export class Array extends Layout {
         })
     }
 
-    public * deHighLight(Index: number, Duration: number, highlightColor: Color){
-        yield* tween(Duration, color =>{
+    public * deHighLight(Index: number, Duration: number){
+        yield* tween(Duration, color => {
             this.boxArray[Index].stroke(
                 Color.lerp(
-                    new Color(highlightColor), 
+                    new Color(this.boxArray[Index].stroke()), 
                     new Color('#242424'),
                     easeInOutCubic(color),
                 )
@@ -118,4 +117,3 @@ export class Array extends Layout {
         this.boxArray[Index2] = tempValue;
      }
 }
-
