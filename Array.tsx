@@ -34,6 +34,7 @@ export class Array extends Layout {
 
     // Array that stores the references to the Rects
     public readonly boxArray: Rect[] = [];
+    private highlightColor: Color;
     
     textStyle = {
         paddingTop: 10,
@@ -69,15 +70,9 @@ export class Array extends Layout {
 
     public constructor(props?: ArrayProps) {
         super({
+            spawner: () => this.pool.slice(0, this.values().length),
             ...props
         }); 
-
-        this.add(
-            <Node
-                spawner={() => this.pool.slice(0, this.values().length)}
-            >
-            </Node>
-        )
     }
 
     public * HighLight(Index: number, Duration: number, highlightColor: Color){
@@ -96,7 +91,7 @@ export class Array extends Layout {
         yield* tween(Duration, color => {
             this.boxArray[Index].stroke(
                 Color.lerp(
-                    new Color(this.boxArray[Index].stroke()), 
+                    new Color('#2196f3'), 
                     new Color('#242424'),
                     easeInOutCubic(color),
                 )
@@ -105,15 +100,19 @@ export class Array extends Layout {
     }
 
     // @param {Boolean} Direction Left == false, Right == True
-    public * Swap(Index1: number, Index2: number, Direction: boolean){
+    public * Swap(Index1: number, Index2: number, Direction: boolean, Duration: number){
         if(Direction) this.boxArray[Index1].moveUp();
         yield* all(
-            this.boxArray[Index1].position(this.boxArray[Index2].position(), 1),
-            this.boxArray[Index2].position(this.boxArray[Index1].position(), 1),
+            this.boxArray[Index1].position(this.boxArray[Index2].position(), Duration),
+            this.boxArray[Index2].position(this.boxArray[Index1].position(), Duration),
         )
         if(!Direction) this.boxArray[Index2].moveDown();
         let tempValue = this.boxArray[Index1];
         this.boxArray[Index1] = this.boxArray[Index2];
         this.boxArray[Index2] = tempValue;
+
+        let tempValue1 = this.values()[Index1];
+        this.values()[Index1] = this.values()[Index2];
+        this.values()[Index2] = tempValue1;
      }
 }
